@@ -41,6 +41,7 @@ class BaseSelectableAdapter<T>(@IdRes bindingVariable: Int, @LayoutRes res: Int)
         private set
 
     private var mRecyclerViewListClickListener: RecyclerViewListListener? = null
+    private var recyclerViewListSelectListener: RecyclerViewListSelectListener? = null
     private var mRootViewClickable = true
     private var mRootViewSelectable = true
     private val mClickableItemIdList = ArrayList<Int>()
@@ -163,6 +164,10 @@ class BaseSelectableAdapter<T>(@IdRes bindingVariable: Int, @LayoutRes res: Int)
         this.mRecyclerViewListClickListener = adapterItemClickListener
     }
 
+    fun setAdapterItemSelectListener(adapterItemSelectListener: RecyclerViewListSelectListener) {
+        recyclerViewListSelectListener = adapterItemSelectListener
+    }
+
     /**
      * Set false to make root view unClickable and unSelectable
      * To make root view clickable but unSelectable, you can just listen the click event and will not change view's selected state
@@ -211,14 +216,16 @@ class BaseSelectableAdapter<T>(@IdRes bindingVariable: Int, @LayoutRes res: Int)
     /***********************************************************************************************
      * Below are Override and private methods
      */
-    private fun onClick(v: View, adapterPos: Int) {
-        mRecyclerViewListClickListener?.let {
-            var viewType = TYPE_MAIN_CONTENT
-            if (adapterPos < headerCount) {
-                viewType = mViewTypeForOutside[adapterPos]
-            }
-            it.onItemClick(viewType, v, adapterPos - headerCount)
+    private fun getViewType(adapterPos: Int): Int {
+        return if (adapterPos < headerCount) {
+            mViewTypeForOutside[adapterPos]
+        } else {
+            TYPE_MAIN_CONTENT
         }
+    }
+
+    private fun onClick(v: View, adapterPos: Int) {
+        mRecyclerViewListClickListener?.onItemClick(getViewType(adapterPos), v, adapterPos - headerCount)
     }
 
     private fun onSelectedClick(v: View, adapterPos: Int) {
@@ -241,20 +248,19 @@ class BaseSelectableAdapter<T>(@IdRes bindingVariable: Int, @LayoutRes res: Int)
             }
         }
 
-        onClick(v, adapterPos)
+        recyclerViewListSelectListener?.onItemSelect(getViewType(adapterPos), v, adapterPos - headerCount)
     }
 
 
     private fun initClickListener(holder: BaseBindingHolder) {
         holder.binding?.root?.let { root ->
-            if (mRootViewClickable) {
-                root.setOnClickListener { v ->
-                    val adapterPos = holder.adapterPosition
-                    if (adapterPos != RecyclerView.NO_POSITION) {
+            root.setOnClickListener { v ->
+                val adapterPos = holder.adapterPosition
+                if (adapterPos != RecyclerView.NO_POSITION) {
+                    if (mRootViewClickable) {
+                        onClick(v, adapterPos)
                         if (mRootViewSelectable) {
                             onSelectedClick(v, adapterPos)
-                        } else {
-                            onClick(v, adapterPos)
                         }
                     }
                 }

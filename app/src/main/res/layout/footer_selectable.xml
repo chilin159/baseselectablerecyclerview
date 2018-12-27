@@ -4,9 +4,12 @@
 
     <data>
 
+        <import type="android.text.TextUtils" />
+        <import type="android.view.View" />
+
         <variable
             name="footer"
-            type="com.example.chilin.baseselectableadapterexample.ClickableFooter" />
+            type="com.example.chilin.baseselectableadapterexample.view.model.ClickableFooter" />
     </data>
 
     <android.support.constraint.ConstraintLayout
@@ -14,10 +17,22 @@
         android:layout_height="wrap_content">
 
         <android.support.v7.widget.AppCompatButton
+            android:id="@+id/switch_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> footer.onSwitchBtnClick()}"
+            android:text="@{footer.switchBtnText}"
+            android:visibility="@{footer.switchBtnText == null ? View.GONE : View.VISIBLE}"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"/>
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/result_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="@{() -> footer.onBtnClick()}"
             android:text="@{footer.footerText}"
+            app:layout_constraintTop_toBottomOf="@+id/switch_btn"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>
     </android.support.constraint.ConstraintLayout>
