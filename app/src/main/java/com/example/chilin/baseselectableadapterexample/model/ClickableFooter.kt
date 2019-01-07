@@ -1,4 +1,4 @@
-package com.example.chilin.baseselectableadapterexample.view.model
+package com.example.chilin.baseselectableadapterexample.model
 
 import android.databinding.ObservableField
 

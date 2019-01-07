@@ -9,7 +9,7 @@
 
         <variable
             name="footer"
-            type="com.example.chilin.baseselectableadapterexample.view.model.ClickableFooter" />
+            type="com.example.chilin.baseselectableadapterexample.model.ClickableFooter" />
     </data>
 
     <android.support.constraint.ConstraintLayout

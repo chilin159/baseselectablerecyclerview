@@ -12,9 +12,11 @@ import android.support.v7.widget.RecyclerView
 import android.widget.Toast
 import com.example.baseselectableadapter.BaseSelectableAdapter
 import com.example.chilin.baseselectableadapterexample.BR
-import com.example.chilin.baseselectableadapterexample.view.model.MultiSelectableModel
 import com.example.chilin.baseselectableadapterexample.R
+import com.example.chilin.baseselectableadapterexample.adapter.MultiContentAdapter
 import com.example.chilin.baseselectableadapterexample.databinding.ActivityMainBinding
+import com.example.chilin.baseselectableadapterexample.model.MultiContentModel
+import com.example.chilin.baseselectableadapterexample.model.MultiSelectableModel
 import com.example.chilin.baseselectableadapterexample.viewmodel.MainViewModel
 
 class MainActivity : AppCompatActivity() {
@@ -41,49 +43,63 @@ class MainActivity : AppCompatActivity() {
 
         binding.run {
             viewmodel = viewModel
-
-            clickableList.run {
-                setBaseSelectableAdapter<String>(BR.data, R.layout.item_clickable) {
-                    addHeaderRes(BR.data, R.layout.header, "Clickable list")
-                    setAdapterItemClickListener(viewModel.clickableListListener)
-                }
-            }
-
-            singleSelectList.run {
-                setBaseSelectableAdapter<String>(BR.data, R.layout.item_selectable) {
-                    addHeaderRes(BR.data, R.layout.header, "Single select list")
-                    setSelectableRes(BaseSelectableAdapter.SINGLE_SELECT, BR.select)
-                    setAdapterItemClickListener(viewModel.singleSelectListClickListener)
-                    setAdapterItemSelectListener(viewModel.singleSelectListLIstener)
-                    setHasFooter(BR.footer, R.layout.footer_selectable, viewModel.singleSelectFooter)
-                    addSelectableItemId(R.id.radio_btn)
-                    setRootViewStatus(viewModel.singleSelectRootViewStatus)
-                }
-            }
-
-            multiSelectList.run {
-                setBaseSelectableAdapter<MultiSelectableModel>(BR.data, R.layout.item_multi_selectable) {
-                    addHeaderRes(BR.data, R.layout.header, "Multi select list")
-                    setSelectableRes(BaseSelectableAdapter.MULTI_SELECT, BR.select)
-                    setAdapterItemClickListener(viewModel.multiSelectListClickListener)
-                    setAdapterItemSelectListener(viewModel.multiSelectListListener)
-                    setHasFooter(BR.footer, R.layout.footer_selectable, viewModel.multiSelectFooter)
-                }
-            }
-
-            clickableSelectList.run {
-                setBaseSelectableAdapter<String>(BR.data, R.layout.item_clickable_select) {
-                    addHeaderRes(BR.data, R.layout.header, "Item clickable select list")
-                    setSelectableRes(BaseSelectableAdapter.SINGLE_SELECT, BR.select)
-                    setAdapterItemClickListener(viewModel.clickableSelectListClickListener)
-                    setAdapterItemSelectListener(viewModel.clickableSelectListListener)
-                    addClickableItemId(R.id.clickable_item)
-                    setHasFooter(BR.footer, R.layout.footer_selectable, viewModel.clickableSelectFooter)
-                }
-            }
+            initRecyclerViews()
         }
 
         lifecycle.addObserver(viewModel)
+    }
+
+    private fun ActivityMainBinding.initRecyclerViews() {
+
+        clickableList.run {
+            setBaseSelectableAdapter<String>(BR.data, R.layout.item_clickable) {
+                addHeaderRes(BR.data, R.layout.header, "Clickable list")
+                setAdapterItemClickListener(viewModel.clickableListListener)
+            }
+        }
+
+        singleSelectList.run {
+            setBaseSelectableAdapter<String>(BR.data, R.layout.item_selectable) {
+                addHeaderRes(BR.data, R.layout.header, "Single select list")
+                setSelectableRes(BaseSelectableAdapter.SINGLE_SELECT, BR.select)
+                setAdapterItemClickListener(viewModel.singleSelectListClickListener)
+                setAdapterItemSelectListener(viewModel.singleSelectListLIstener)
+                setHasFooter(BR.footer, R.layout.footer_selectable, viewModel.singleSelectFooter)
+                addSelectableItemId(R.id.radio_btn)
+                setRootViewStatus(viewModel.singleSelectRootViewStatus)
+            }
+        }
+
+        multiSelectList.run {
+            setBaseSelectableAdapter<MultiSelectableModel>(BR.data, R.layout.item_multi_selectable) {
+                addHeaderRes(BR.data, R.layout.header, "Multi select list")
+                setSelectableRes(BaseSelectableAdapter.MULTI_SELECT, BR.select)
+                setAdapterItemClickListener(viewModel.multiSelectListClickListener)
+                setAdapterItemSelectListener(viewModel.multiSelectListListener)
+                setHasFooter(BR.footer, R.layout.footer_selectable, viewModel.multiSelectFooter)
+            }
+        }
+
+        clickableSelectList.run {
+            setBaseSelectableAdapter<String>(BR.data, R.layout.item_clickable_select) {
+                addHeaderRes(BR.data, R.layout.header, "Item clickable select list")
+                setSelectableRes(BaseSelectableAdapter.SINGLE_SELECT, BR.select)
+                setAdapterItemClickListener(viewModel.clickableSelectListClickListener)
+                setAdapterItemSelectListener(viewModel.clickableSelectListListener)
+                addClickableItemId(R.id.clickable_item)
+                setHasFooter(BR.footer, R.layout.footer_selectable, viewModel.clickableSelectFooter)
+            }
+        }
+
+        multiContentList.run {
+            setMultiContentAdapter<MultiContentModel>(BR.data) {
+                addHeaderRes(BR.data, R.layout.header, "Multi content list")
+                setSelectableRes(BaseSelectableAdapter.SINGLE_SELECT, BR.select)
+                setAdapterItemClickListener(viewModel.multiContentListClickListener)
+                setAdapterItemSelectListener(viewModel.multiContentListListener)
+                setHasFooter(BR.footer, R.layout.footer_selectable, viewModel.multiContentSelectFooter)
+            }
+        }
     }
 
     private fun <T> BaseSelectableAdapter<T>.setRootViewStatus(style: Int) {
@@ -100,5 +116,9 @@ class MainActivity : AppCompatActivity() {
 
     fun <T> RecyclerView.setBaseSelectableAdapter(br: Int, @LayoutRes layout: Int, init: BaseSelectableAdapter<T>.() -> Unit) {
         adapter = BaseSelectableAdapter<T>(br, layout).apply { init() }
+    }
+
+    fun <T> RecyclerView.setMultiContentAdapter(br: Int, init: MultiContentAdapter<T>.() -> Unit) {
+        adapter = MultiContentAdapter<T>(br).apply { init() }
     }
 }

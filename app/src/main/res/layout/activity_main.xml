@@ -65,6 +65,18 @@
                 app:layout_constraintTop_toBottomOf="@+id/multi_select_list"
                 app:singleSelectedPosition="@{viewmodel.clickableSelectedPos}"/>
 
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/multi_content_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical"
+                android:nestedScrollingEnabled="false"
+                app:baseSelectableDataSource="@{viewmodel.multiContentList}"
+                app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@+id/clickable_select_list"
+                app:singleSelectedPosition="@{viewmodel.multiContentSelectedPos}"/>
+
         </android.support.constraint.ConstraintLayout>
     </android.support.v4.widget.NestedScrollView>
 </layout>

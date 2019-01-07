@@ -12,8 +12,10 @@ import com.example.baseselectableadapter.RecyclerViewListListener
 import com.example.baseselectableadapter.RecyclerViewListSelectListener
 import com.example.chilin.baseselectableadapterexample.R
 import com.example.chilin.baseselectableadapterexample.architecture.SingleLiveEvent
-import com.example.chilin.baseselectableadapterexample.view.model.ClickableFooter
-import com.example.chilin.baseselectableadapterexample.view.model.MultiSelectableModel
+import com.example.chilin.baseselectableadapterexample.model.ClickableFooter
+import com.example.chilin.baseselectableadapterexample.model.MultiContentModel
+import com.example.chilin.baseselectableadapterexample.model.MultiContentSelectModel
+import com.example.chilin.baseselectableadapterexample.model.MultiSelectableModel
 
 class MainViewModel(application: Application) : AndroidViewModel(application), LifecycleObserver {
     val SELECTABLE_ROOT_VIEW = 0
@@ -152,6 +154,46 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
         }
     }
 
+    /**===========multi content list=================*/
+    val multiContentList = ObservableArrayList<MultiContentModel>()
+    val multiContentSelectedPos = ObservableInt(-1)
+    val multiContentListClickListener = object : RecyclerViewListListener {
+        override fun onItemClick(viewType: Int, view: View, adapterPos: Int) {
+            showToastEvent.postValue(multiContentList[adapterPos].title)
+        }
+    }
+
+    val multiContentListListener = object : RecyclerViewListSelectListener {
+
+        override fun onItemSelect(viewType: Int, view: View, adapterPos: Int) {
+            multiContentSelectedPos.set(adapterPos)
+        }
+    }
+
+    val multiContentSelectFooter = object : ClickableFooter() {
+        override var footerText = ObservableField<String>("Show selected item")
+        override var switchBtnText = ObservableField<String?>()
+
+        override fun onBtnClick() {
+            if (multiContentSelectedPos.get() >= 0) {
+                showToastEvent.postValue(multiContentList[multiContentSelectedPos.get()].title)
+            }
+        }
+
+        override fun onSwitchBtnClick() {
+
+        }
+    }
+
+    private fun initMultiContentList() {
+        multiContentList.clear()
+        multiContentList.add(MultiContentModel("Multi content 1"))
+        multiContentList.add(MultiContentSelectModel("Multi content 2"))
+        multiContentList.add(MultiContentModel("Multi content 3"))
+        multiContentList.add(MultiContentSelectModel("Multi content 4"))
+        multiContentList.add(MultiContentSelectModel("Multi content 5"))
+    }
+
     init {
         for (i in 1..5) {
             clickableList.add("Clickable List $i")
@@ -160,6 +202,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), L
                 isSelected = false
             })
             clickableSelectList.add("item clickable list $i")
+            initMultiContentList()
         }
     }
 

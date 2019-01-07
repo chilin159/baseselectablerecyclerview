@@ -10,10 +10,10 @@ import android.view.View
 import android.view.ViewGroup
 import java.util.*
 
-class BaseSelectableAdapter<T>(@IdRes bindingVariable: Int, @LayoutRes res: Int) : RecyclerView.Adapter<BaseBindingHolder>() {
+open class BaseSelectableAdapter<T>() : RecyclerView.Adapter<BaseBindingHolder>() {
     private val PAYLAOD_SELECTED = "PAYLOAD_SELECTED"
 
-    private val mData = ArrayList<T>()
+    protected val mData = ArrayList<T>()
     @IdRes
     private var mBindingVariable = 0
     @LayoutRes
@@ -58,9 +58,13 @@ class BaseSelectableAdapter<T>(@IdRes bindingVariable: Int, @LayoutRes res: Int)
      * mRes is xml resource of item
      * for example:  BaseSelectableAdapter(BR.data, R.layout.item_school);
      */
-    init {
+    constructor(@IdRes bindingVariable: Int, @LayoutRes res: Int) : this() {
         mBindingVariable = bindingVariable
         mRes = res
+    }
+
+    constructor(@IdRes bindingVariable: Int) : this() {
+        mBindingVariable = bindingVariable
     }
 
     /**
@@ -252,33 +256,76 @@ class BaseSelectableAdapter<T>(@IdRes bindingVariable: Int, @LayoutRes res: Int)
     }
 
 
-    private fun initClickListener(holder: BaseBindingHolder) {
-        holder.binding?.root?.let { root ->
-            root.setOnClickListener { v ->
-                val adapterPos = holder.adapterPosition
-                if (adapterPos != RecyclerView.NO_POSITION) {
-                    if (mRootViewClickable) {
-                        onClick(v, adapterPos)
-                        if (mRootViewSelectable) {
+    protected fun initClickAndSelectListener(holder: BaseBindingHolder) {
+        holder.run {
+            binding?.root?.let { root ->
+                root.setOnClickListener { v ->
+                    val adapterPos = holder.adapterPosition
+                    if (adapterPos != RecyclerView.NO_POSITION) {
+                        if (mRootViewClickable) {
+                            onClick(v, adapterPos)
+                            if (mRootViewSelectable) {
+                                onSelectedClick(v, adapterPos)
+                            }
+                        }
+                    }
+                }
+
+                root.initClickableItemsListener(this)
+                root.initSelectableItemsListener(this)
+
+            }
+        }
+    }
+
+    protected fun initClickListener(holder: BaseBindingHolder) {
+        holder.run {
+            binding?.root?.let { root ->
+                root.setOnClickListener { v ->
+                    val adapterPos = holder.adapterPosition
+                    if (adapterPos != RecyclerView.NO_POSITION) {
+                        if (mRootViewClickable) {
+                            onClick(v, adapterPos)
+                        }
+                    }
+                }
+                root.initClickableItemsListener(this)
+            }
+        }
+    }
+
+    protected fun initSelectListener(holder: BaseBindingHolder) {
+        holder.run {
+            binding?.root?.let { root ->
+                root.setOnClickListener { v ->
+                    val adapterPos = holder.adapterPosition
+                    if (adapterPos != RecyclerView.NO_POSITION) {
+                        if (mRootViewClickable && mRootViewSelectable) {
                             onSelectedClick(v, adapterPos)
                         }
                     }
                 }
-            }
 
-            for (i in mClickableItemIdList.indices) {
-                root.findViewById<View>(mClickableItemIdList[i])?.setOnClickListener { v ->
-                    if (holder.adapterPosition != RecyclerView.NO_POSITION) {
-                        onClick(v, holder.adapterPosition)
-                    }
+                root.initSelectableItemsListener(this)
+            }
+        }
+    }
+
+    private fun View.initClickableItemsListener(holder: BaseBindingHolder) {
+        for (i in mClickableItemIdList.indices) {
+            findViewById<View>(mClickableItemIdList[i])?.setOnClickListener { v ->
+                if (holder.adapterPosition != RecyclerView.NO_POSITION) {
+                    onClick(v, holder.adapterPosition)
                 }
             }
+        }
+    }
 
-            for (i in mSelectableItemIdList.indices) {
-                root.findViewById<View>(mSelectableItemIdList[i])?.setOnClickListener { v ->
-                    if (holder.adapterPosition != RecyclerView.NO_POSITION) {
-                        onSelectedClick(v, holder.adapterPosition)
-                    }
+    private fun View.initSelectableItemsListener(holder: BaseBindingHolder) {
+        for (i in mSelectableItemIdList.indices) {
+            findViewById<View>(mSelectableItemIdList[i])?.setOnClickListener { v ->
+                if (holder.adapterPosition != RecyclerView.NO_POSITION) {
+                    onSelectedClick(v, holder.adapterPosition)
                 }
             }
         }
@@ -286,41 +333,27 @@ class BaseSelectableAdapter<T>(@IdRes bindingVariable: Int, @LayoutRes res: Int)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseBindingHolder {
         val inflater = LayoutInflater.from(parent.context)
-        when (viewType) {
-            TYPE_MAIN_CONTENT -> {
-                val binding = DataBindingUtil.inflate<ViewDataBinding>(inflater, mRes, parent, false)
-                val holder = BaseBindingHolder.newInstance(binding)
-                initClickListener(holder)
-                return holder
-            }
-            TYPE_FOOTER -> {
-                val binding = DataBindingUtil.inflate<ViewDataBinding>(inflater, mFooterRes, parent, false)
-                return BaseBindingHolder.newInstance(binding)
-            }
-            else -> {
-                val binding = DataBindingUtil.inflate<ViewDataBinding>(inflater, mHeaderRes[viewType], parent, false)
-                return BaseBindingHolder.newInstance(binding)
-            }
+        if (viewType == TYPE_FOOTER) {
+            val binding = DataBindingUtil.inflate<ViewDataBinding>(inflater, mFooterRes, parent, false)
+            return BaseBindingHolder.newInstance(binding)
         }
+
+        if (viewType < TYPE_MAIN_CONTENT) {
+            val binding = DataBindingUtil.inflate<ViewDataBinding>(inflater, mHeaderRes[viewType], parent, false)
+            return BaseBindingHolder.newInstance(binding)
+        }
+
+        return onCreateMainContentViewHolder(parent, viewType)
     }
 
     override fun onBindViewHolder(holder: BaseBindingHolder, position: Int) {
         holder.binding?.run {
-            when (getItemViewType(position)) {
-                TYPE_MAIN_CONTENT -> {
-                    val contentPos = position - headerCount
-                    val data = mData[contentPos]
-                    setVariable(mBindingVariable, data)
-                    if (mType != NO_SELECT && mSelectableList.isNotEmpty()) {
-                        setVariable(mSelectableBindingVariable, mSelectableList[contentPos])
-                    }
-                }
-                TYPE_FOOTER -> {
-                    setVariable(mFooterBindingVariable, mFooterData)
-                }
-                else -> {
-                    setVariable(mHeaderBindingVariable[position], mHeaderData[position])
-                }
+            if (getItemViewType(position) == TYPE_FOOTER) {
+                setVariable(mFooterBindingVariable, mFooterData)
+            } else if (getItemViewType(position) < TYPE_MAIN_CONTENT) {
+                setVariable(mHeaderBindingVariable[position], mHeaderData[position])
+            } else {
+                onBindMainContentViewHolder(position - headerCount)
             }
             executePendingBindings()
         }
@@ -349,7 +382,30 @@ class BaseSelectableAdapter<T>(@IdRes bindingVariable: Int, @LayoutRes res: Int)
         } else if (mHasFooter && position == itemCount - 1) {
             TYPE_FOOTER
         } else {
-            TYPE_MAIN_CONTENT
+            getMainContentItemViewType(position)
+        }
+    }
+
+    /***********************************************************************************************
+     * Below are open function
+     * */
+    open fun getMainContentItemViewType(position: Int): Int {
+        return TYPE_MAIN_CONTENT
+    }
+
+    open fun onCreateMainContentViewHolder(parent: ViewGroup, viewType: Int): BaseBindingHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = DataBindingUtil.inflate<ViewDataBinding>(inflater, mRes, parent, false)
+        val holder = BaseBindingHolder.newInstance(binding)
+        initClickAndSelectListener(holder)
+        return holder
+    }
+
+    open fun ViewDataBinding.onBindMainContentViewHolder(contentPos: Int) {
+        val data = mData[contentPos]
+        setVariable(mBindingVariable, data)
+        if (mType != NO_SELECT && mSelectableList.isNotEmpty()) {
+            setVariable(mSelectableBindingVariable, mSelectableList[contentPos])
         }
     }
 
